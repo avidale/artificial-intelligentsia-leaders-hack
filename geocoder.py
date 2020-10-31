@@ -98,6 +98,10 @@ def geo_distance(addr1, addr2):
     # approximate radius of earth in km
     R = 6373.0
 
+    for a in [addr1, addr2]:
+        if a.lat is None or a.lon is None:
+            return
+
     lat1 = math.radians(addr1.lat)
     lon1 = math.radians(addr1.lon)
     lat2 = math.radians(addr2.lat)

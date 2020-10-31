@@ -71,35 +71,46 @@ class Embedder:
 
 
 class EventSearcher:
-    def __init__(self, df, embedder, tree_titl=None, tree_desc=None):
+    def __init__(self, df, embedder, tree_titl=None, tree_desc=None, title_column='Название мероприятия', desc_column='Краткое описание'):
         self.df = df
         self.embedder = embedder
         self.tree_titl = tree_titl
         self.tree_desc = tree_desc
 
-        self.titles = self.df['Название мероприятия']
-        self.desc = self.df['Краткое описание']
+        self.title_column = title_column
+        self.desc_column = desc_column
+
+        self.titles = self.df[self.title_column]
+        if self.desc_column:
+            self.desc = self.df[self.desc_column ]
 
     def prepare_embeddings(self):
         self.titles_emb = np.stack([
             self.embedder(text)
             for text in tqdm(self.titles)
         ])
-        self.desc_emb = np.stack([
-            self.embedder(text)
-            for text in tqdm(self.desc)
-        ])
         self.tree_titl = KDTree(self.titles_emb)
-        self.tree_desc = KDTree(self.desc_emb)
+        if self.desc_column:
+            self.desc_emb = np.stack([
+                self.embedder(text)
+                for text in tqdm(self.desc)
+            ])
+            self.tree_desc = KDTree(self.desc_emb)
+        else:
+            self.tree_desc = None
 
     def match_vector(self, e, n=10):
         distances, indices = self.tree_titl.query(e[np.newaxis, :], n)
         first = pd.DataFrame({'d': distances[0], 'idx': indices[0]})
-        distances, indices = self.tree_desc.query(e[np.newaxis, :], n)
-        second = pd.DataFrame({'d': distances[0], 'idx': indices[0]})
-        total = pd.concat([first, second], ignore_index=True).sort_values('d')
+        if self.desc_column:
+            distances, indices = self.tree_desc.query(e[np.newaxis, :], n)
+            second = pd.DataFrame({'d': distances[0], 'idx': indices[0]})
+            total = pd.concat([first, second], ignore_index=True).sort_values('d')
+        else:
+            total = first
         total['title'] = self.titles[total.idx].values
-        total['desc'] = self.desc[total.idx].values
+        if self.desc_column:
+            total['desc'] = self.desc[total.idx].values
         total.drop_duplicates(subset=['idx'], keep='first', inplace=True, ignore_index=True)
         return total
 
@@ -107,7 +118,9 @@ class EventSearcher:
         pack = {
             'df': self.df, 
             'tree_desc': self.tree_desc,
-            'tree_titl': self.tree_titl
+            'tree_titl': self.tree_titl,
+            'title_column': self.title_column, 
+            'desc_column': self.desc_column,
         }
         with open(filename, 'wb') as f:
             pickle.dump(pack, f)
@@ -116,7 +129,7 @@ class EventSearcher:
     def from_pickle(cls, filename, embedder):
         with open(filename, 'rb') as f:
             pack = pickle.load(f)
-        result = cls(df=pack['df'], tree_desc=pack['tree_desc'], tree_titl=pack['tree_titl'], embedder=embedder)
+        result = cls(embedder=embedder, **pack)
         return result
 
 

@@ -1,5 +1,5 @@
 import pandas as pd
-from config import TOP_DOCUMENTS_DATA
+from ..config import TOP_DOCUMENTS_DATA
 
 
 class Searcher:

@@ -12,7 +12,6 @@ from sklearn.neighbors import KDTree
 from tqdm.auto import tqdm
 
 
-
 def annotation_from_librusec(title):
     r = requests.get('http://http.lib.rus.ec/search?ask={}'.format(title.replace(' ', '+'))).text
     soup = BeautifulSoup(r, features="lxml")

@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 
 from urllib.parse import parse_qs
 
+
 def google_img(text, extra='книга+обложка'):
     r = requests.get('https://www.google.ru/search?q={}+{}'.format(text.replace(' ', '+'), extra))
     soup = BeautifulSoup(r.text)

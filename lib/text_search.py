@@ -63,7 +63,6 @@ class Porter:
     stem=staticmethod(stem)
 
 
-
 class TextSearcher:
     def __init__(self, inverse_index=None, doc_sizes=None, stem=False):
         self.inverse_index = inverse_index or {}
@@ -77,21 +76,22 @@ class TextSearcher:
             toks = [Porter.stem(t) for t in toks]
         return toks
 
-    def fit(self, texts):
+    def fit(self, texts, indices=None):
         ii = defaultdict(list)
         doc_sizes = Counter()
         for i, text in enumerate(tqdm(texts)):
             if not isinstance(text, str):
                 continue
             toks = self.get_tokens(text)
-            doc_sizes[i] = len(toks)
+            idx = i if indices is None else indices[i]
+            doc_sizes[idx] = len(toks)
             for token in toks:
-                ii[token].append(i)
+                ii[token].append(idx)
         self.inverse_index = ii
         self.doc_sizes = doc_sizes
         self.avg_doc_len = sum(doc_sizes.values()) / len(doc_sizes) if doc_sizes else 1
 
-    def bm25(self, text, avg_doc_len=4, max_df=0.1, k=1.5, b=0.75):
+    def bm25(self, text, max_df=0.1, k=1.5, b=0.75):
         toks = self.get_tokens(text)
         result = Counter()
         n_docs = len(self.doc_sizes)
@@ -103,9 +103,14 @@ class TextSearcher:
             tf = 1
             score = tf * idf
             for doc in docs:
-                result[doc] += idf * tf * (k + 1) / (tf + k * (1 - b + b * self.doc_sizes[doc] / avg_doc_len))
+                result[doc] += idf * tf * (k + 1) / (tf + k * (1 - b + b * self.doc_sizes[doc] / self.avg_doc_len))
         return result
 
     def save(self, filename):
         with open(filename, 'wb') as f:
             pickle.dump({'inverse_index': self.inverse_index, 'doc_sizes': self.doc_sizes, 'stem': self.stem}, f)
+
+    @classmethod
+    def load(cls, filename):
+        with open(filename, 'rb') as f:
+            return cls(**pickle.load(f))

@@ -1,0 +1,54 @@
+from flask import Flask, request, jsonify, abort
+from src.models import rec_model
+from src.searcher import searcher
+from config import DEBUG, SERVER_PORT
+
+app = Flask(__name__)
+
+
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With, Content-Type, Accept"
+    response.headers['Access-Control-Allow-Methods'] = "DELETE, GET, POST, PUT, OPTIONS"
+    return response
+
+
+app.after_request(add_cors_headers)
+
+
+@app.route('/recommend', methods=["POST"])
+def hello_world():
+    doc_ids = request.json["doc_ids"]
+    recommendations = rec_model.recommend_by_history(doc_ids, 10)
+    recommendations = rec_model.get_book_info(recommendations)
+
+    res = [{
+        "title": cand["title"],
+        "author": cand["author"],
+        "doc_id": cand["doc_id"]
+    } for i, cand in recommendations.iterrows()]
+
+    return jsonify(res)
+
+
+@app.route('/search', methods=["POST"])
+def handle_search():
+    if "search_str" not in request.json:
+        abort(401)
+
+    search_res = searcher.search_by_substr(request.json['search_str'])
+
+    res = [{
+        "title": cand["title"],
+        "author": cand["author"],
+        "doc_id": cand["doc_id"]
+    } for i, cand in search_res.iterrows()]
+
+    return jsonify(res)
+
+
+if __name__ == '__main__':
+    app.run(
+        debug=DEBUG,
+        port=SERVER_PORT
+    )

@@ -67,6 +67,15 @@ def add_book():
     return jsonify({'result': 'OK'})
 
 
+@app.route('/profile', methods=["POST"])
+def get_profile():
+    # expects json like {'uid': str, 'book': object}
+    if "uid" not in request.json:
+        abort(401)
+    user = user_storage.get_user(uid=request.json['uid'])
+    return jsonify(user.to_dict())
+
+
 if __name__ == '__main__':
     app.run(
         debug=DEBUG,

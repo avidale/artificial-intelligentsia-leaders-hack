@@ -14,6 +14,14 @@ class User:
     def book_ids(self):
         return [b['doc_id'] for b in self.books]
 
+    def to_dict(self):
+        return {
+            'uid': self.uid,
+            'age': self.age,
+            'address': self.address,
+            'books': self.books,
+        }
+
 
 class UserStorage:
     def __init__(self):

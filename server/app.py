@@ -28,8 +28,11 @@ def hello_world():
     # doc_ids = request.json["doc_ids"]
     user = user_storage.get_user(uid=request.json['uid'])
     doc_ids = user.book_ids
-    recommendations = rec_model.recommend_by_history(doc_ids, 10)
-    recommendations = rec_model.get_book_info(recommendations)
+    if not doc_ids:
+        recommendations = rec_model.random_books(10)
+    else:
+        recommendations = rec_model.recommend_by_history(doc_ids, 10)
+        recommendations = rec_model.get_book_info(recommendations)
 
     res = [{
         "title": cand["title"],

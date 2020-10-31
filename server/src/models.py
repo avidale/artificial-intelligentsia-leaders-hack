@@ -30,5 +30,9 @@ class RecModel:
     def recommend_by_user(self):
         pass
 
+    def random_books(self, k=10):
+        # todo: use book popularity
+        return self.all_documents.sample(k)
+
 
 rec_model = RecModel()

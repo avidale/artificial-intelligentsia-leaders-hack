@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, abort
-from .src.models import rec_model
-from .src.searcher import searcher
-from .config import DEBUG, SERVER_PORT
+from src.models import rec_model
+from src.searcher import searcher
+from config import DEBUG, SERVER_PORT
 
 app = Flask(__name__)
 

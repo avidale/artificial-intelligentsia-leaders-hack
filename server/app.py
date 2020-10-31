@@ -16,6 +16,11 @@ def add_cors_headers(response):
 app.after_request(add_cors_headers)
 
 
+@app.route('/')
+def salam():
+    return "Salam aleikum"
+
+
 @app.route('/recommend', methods=["POST"])
 def hello_world():
     doc_ids = request.json["doc_ids"]

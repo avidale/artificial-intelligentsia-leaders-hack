@@ -4,3 +4,8 @@ joblib
 sklearn
 implicit
 pyarrow
+razdel
+compress_fasttext
+tqdm
+bs4
+requests

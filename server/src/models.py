@@ -1,4 +1,4 @@
-from ..config import MAPPERS_PATH, MODEL_PATH, ITEM_USER_DATA, ALL_DOCUMENTS_DATA
+from config import MAPPERS_PATH, MODEL_PATH, ITEM_USER_DATA, ALL_DOCUMENTS_DATA
 import joblib
 import pandas as pd
 import numpy as np

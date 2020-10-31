@@ -15,7 +15,8 @@ class Searcher:
 
     def search_by_substr(self, substr, top=10):
         result = self.index.bm25(substr)
-        return self.top_documents.loc[[id for id, count in result.most_common(top)]].reset_index()
+        docs = self.top_documents.loc[[id for id, count in result.most_common(top * 5)]].reset_index()
+        return docs.drop_duplicates(subset=['author', 'title']).head(top)
 
 
 searcher = Searcher()

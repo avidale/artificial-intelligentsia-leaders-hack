@@ -1,9 +1,11 @@
 from flask import Flask, request, jsonify, abort
 from src.models import rec_model
 from src.searcher import searcher
+from src.user_model import UserStorage
 from config import DEBUG, SERVER_PORT
 
 app = Flask(__name__)
+user_storage = UserStorage()
 
 
 def add_cors_headers(response):
@@ -23,7 +25,9 @@ def salam():
 
 @app.route('/recommend', methods=["POST"])
 def hello_world():
-    doc_ids = request.json["doc_ids"]
+    # doc_ids = request.json["doc_ids"]
+    user = user_storage.get_user(uid=request.json['uid'])
+    doc_ids = user.book_ids
     recommendations = rec_model.recommend_by_history(doc_ids, 10)
     recommendations = rec_model.get_book_info(recommendations)
 
@@ -50,6 +54,17 @@ def handle_search():
     } for i, cand in search_res.iterrows()]
 
     return jsonify(res)
+
+
+@app.route('/add-book', methods=["POST"])
+def add_book():
+    # expects json like {'uid': str, 'book': object}
+    if "uid" not in request.json or 'book' not in request.json:
+        abort(401)
+    user = user_storage.get_user(uid=request.json['uid'])
+    user.add_book(request.json['book'])
+    user_storage.save_user(user)
+    return jsonify({'result': 'OK'})
 
 
 if __name__ == '__main__':

@@ -71,7 +71,7 @@ class TextSearcher:
         self.avg_doc_len = sum(doc_sizes.values()) / len(doc_sizes) if doc_sizes else 1
 
     def get_tokens(self, text):
-        toks = [t.text.lower() for t in tokenize(text)]
+        toks = [t.text.lower().replace('ё', 'е') for t in tokenize(text)]
         if self.stem:
             toks = [Porter.stem(t) for t in toks]
         return toks

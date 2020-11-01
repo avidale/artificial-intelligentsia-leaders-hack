@@ -9,6 +9,8 @@ from lib.user_model import User, UserStorage
 from lib.cross_recommender import CrossRecommender
 
 import logging
+logging.basicConfig(level=logging.DEBUG)
+
 
 app = Flask(__name__)
 user_storage = UserStorage()
@@ -47,8 +49,9 @@ def recommend_books(user: User):
     if not doc_ids:
         recommendations = rec_model.random_books(10)
     else:
-        recommendations = rec_model.recommend_by_history(doc_ids, 10)
+        recommendations = rec_model.recommend_by_history(doc_ids, 20)
         recommendations = rec_model.get_book_info(recommendations)
+        recommendations = recommendations.drop_duplicates(['title']).head(10)
     res = [{
         "title": cand["title"],
         "author": cand["author"],

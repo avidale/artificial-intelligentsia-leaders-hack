@@ -1,3 +1,4 @@
+from itertools import zip_longest
 
 from flask import Flask, request, jsonify, abort
 from src.models import rec_model
@@ -37,14 +38,22 @@ def salam():
     return "Salam aleikum"
 
 
+def mix_lists(*lists):
+    result = []
+    for part in zip_longest(*lists):
+        for elem in part:
+            if elem is not None:
+                result.append(elem)
+    return result
+
+
 @app.route('/recommend', methods=["POST"])
 def recommend():
-    # doc_ids = request.json["doc_ids"]
     user = user_storage.get_user(uid=request.json['uid'])
     logger.debug('recommending for user {}'.format(request.json['uid']))
     books = recommend_books(user)
     events = cross_recommender.recommend_events(user)
-    return jsonify(books + events)
+    return jsonify(mix_lists(books, events))
 
 
 def recommend_books(user: User):

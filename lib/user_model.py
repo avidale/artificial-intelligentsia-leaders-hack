@@ -20,6 +20,10 @@ class User:
     def book_ids(self):
         return [b['doc_id'] for b in self.books]
 
+    @property
+    def book_titles(self):
+        return {b['title'] for b in self.books}
+
     def to_dict(self):
         return {
             'uid': self.uid,

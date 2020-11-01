@@ -8,6 +8,13 @@ from tqdm.auto import tqdm
 import re
 
 
+def normalize_text(text):
+    text = re.sub('[^a-zа-яё0-9]+', ' ', text.lower())
+    text = re.sub('\\s+', ' ', text).strip()
+    text = re.sub('ё', 'е', text)
+    return text
+
+
 class Porter:
     # taken from https://gist.github.com/Kein1945/9111512
     PERFECTIVEGROUND =  re.compile(u"((ив|ивши|ившись|ыв|ывши|ывшись)|((?<=[ая])(в|вши|вшись)))$")

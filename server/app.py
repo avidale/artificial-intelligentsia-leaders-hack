@@ -2,7 +2,7 @@
 from flask import Flask, request, jsonify, abort
 from src.models import rec_model
 from src.searcher import searcher
-from config import DEBUG, SERVER_PORT, TEXT_EMBEDDER_MODEL
+from config import DEBUG, SERVER_PORT, TEXT_EMBEDDER_MODEL, ANNOTATIONS_DATA
 import sys
 sys.path.append('..')
 from lib.user_model import User, UserStorage
@@ -14,7 +14,10 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 user_storage = UserStorage()
-cross_recommender = CrossRecommender(TEXT_EMBEDDER_MODEL)
+cross_recommender = CrossRecommender(
+    embedder_data=TEXT_EMBEDDER_MODEL,
+    ann_data=ANNOTATIONS_DATA,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -51,15 +54,23 @@ def recommend_books(user: User):
     else:
         recommendations = rec_model.recommend_by_history(doc_ids, 20)
         recommendations = rec_model.get_book_info(recommendations)
-        recommendations = recommendations.drop_duplicates(['title']).head(10)
-    res = [{
-        "title": cand["title"],
-        "author": cand["author"],
-        "doc_id": cand["doc_id"],
-        'type': 'book',
-        'name': cand['title'],
-        'description': cand['author'],
-    } for i, cand in recommendations.iterrows()]
+        recommendations = recommendations.drop_duplicates(['title'])
+        recommendations = recommendations[recommendations.title.apply(lambda x: x not in user.book_titles)]
+        recommendations = recommendations.head(10)
+    res = []
+    for i, cand in recommendations.iterrows():
+        item = {
+            "title": cand["title"],
+            "author": cand["author"],
+            "doc_id": cand["doc_id"],
+            'type': 'book',
+            'name': cand['title'],
+            'description': cand['author'],
+        }
+        ann = cross_recommender.find_annotation(title=cand.title, author=cand.author)
+        if ann:
+            item['description'] = '{}\n{}'.format(cand.author, ann)
+        res.append(item)
     return res
 
 

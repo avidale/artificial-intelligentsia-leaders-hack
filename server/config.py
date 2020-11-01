@@ -12,6 +12,7 @@ ALL_DOCUMENTS_DATA = os.path.join(DATA_PATH, "all_documents.parquet")
 
 BOOKS_SEARCHER_MODEL = os.path.join(PROJECT_PATH, '..', 'resources', 'top_books_search.pkl')
 TEXT_EMBEDDER_MODEL = os.path.join(PROJECT_PATH, '..', 'resources', 'ft_freqprune_100K_20K_pq_100.bin')
+ANNOTATIONS_DATA = os.path.join(PROJECT_PATH, '..', 'resources', 'annotations_small.parquet')
 # TOP_DOCUMENTS_DATA = os.path.join(PROJECT_PATH, '..', '..',  'books', "top_documents.parquet")
 
 SERVER_PORT = 3228

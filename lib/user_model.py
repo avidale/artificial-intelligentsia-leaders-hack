@@ -20,6 +20,9 @@ class User:
         #         book['img_url'] = gi
         self.books.append(book)
 
+    def add_book_vector(self, book_vector):
+        self.book_vectors.append(book_vector)
+
     @property
     def book_ids(self):
         return [b['doc_id'] for b in self.books]
@@ -35,6 +38,7 @@ class User:
             'address': self.address,
             'location': self.location,
             'books': self.books,
+            'book_vectors': self.book_vectors,
         }
 
 

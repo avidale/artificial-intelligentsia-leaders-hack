@@ -15,7 +15,7 @@ def make_events_searcher(embedder):
     data = requests.get(EVENTS_URL).json()
     items = data['pageProps']['items']
     for item in items:
-        pass
+        item['address'] = geocoder.Address(lat=item['latitude'], lon=item['longitude'], text=item['spot_name'])
     items_df = pd.DataFrame(items)
     s150 = EventSearcher(items_df, embedder=embedder, title_column='name', desc_column='full_description')
     s150.prepare_embeddings()
@@ -52,11 +52,19 @@ class CrossRecommender:
 
     def recommend_events(self, user: User):
         if len(user.book_vectors) == 0:
-            events = self.events_searcher.df.sample(10)
+            events = self.events_searcher.df.copy()
+            events['score'] = 1
         else:
             vec = np.mean(user.book_vectors, axis=0)
-            found = self.events_searcher.match_vector(vec, n=10)
-            events = self.events_searcher.df.iloc[found.idx]
+            found = self.events_searcher.match_vector(vec, n=30)
+            events = self.events_searcher.df.iloc[found.idx].copy()
+            events['score'] = 1 - found.d
+        if user.location and user.location.get('lat'):
+            addr = geocoder.Address(lat=user.location['lat'], lon=user.location['lon'])
+            events['distance'].address.apply(lambda a: geocoder.geo_distance(addr, a))
+            events['total_score'] = events.score * np.exp(- events['distance'] / 20)
+            events.sort_values('total_score', inplace=True, ascending=False)
+        events = events.head(10)
         return [
             {
                 'name': e['name'],

@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import requests
 
@@ -50,8 +51,12 @@ class CrossRecommender:
         return e
 
     def recommend_events(self, user: User):
-        # todo: use user book vectors instead
-        events = self.events_searcher.df.sample(10)
+        if len(user.book_vectors) == 0:
+            events = self.events_searcher.df.sample(10)
+        else:
+            vec = np.mean(user.book_vectors, axis=0)
+            found = self.events_searcher.match_vector(vec, n=10)
+            events = self.events_searcher.df.iloc[found.idx]
         return [
             {
                 'name': e.name,

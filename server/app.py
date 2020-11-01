@@ -2,7 +2,7 @@
 from flask import Flask, request, jsonify, abort
 from src.models import rec_model
 from src.searcher import searcher
-from config import DEBUG, SERVER_PORT, TEXT_EMBEDDER_MODEL, ANNOTATIONS_DATA
+from config import DEBUG, SERVER_PORT, TEXT_EMBEDDER_MODEL, ANNOTATIONS_DATA, USER_STATE
 import sys
 sys.path.append('..')
 from lib.user_model import User, UserStorage
@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 app = Flask(__name__)
-user_storage = UserStorage()
+user_storage = UserStorage(USER_STATE)
 cross_recommender = CrossRecommender(
     embedder_data=TEXT_EMBEDDER_MODEL,
     ann_data=ANNOTATIONS_DATA,
@@ -95,9 +95,13 @@ def add_book():
     # expects json like {'uid': str, 'book': object}
     if "uid" not in request.json or 'book' not in request.json:
         abort(401)
-    logger.debug('adding a book {} for user {}'.format(request.json['book'], request.json['uid']))
+    book = request.json['book']
+    logger.debug('adding a book {} for user {}'.format(book, request.json['uid']))
     user = user_storage.get_user(uid=request.json['uid'])
-    user.add_book(request.json['book'])
+    book['annotation'] = cross_recommender.find_annotation(title=book.get('title'), author=book.get('author'))
+    logger.debug('book annotation: {}'.format(book['annotation']))
+    user.add_book(book)
+    user.add_book_vector(cross_recommender.book2vec(book))
     user_storage.save_user(user)
     return jsonify({'result': 'OK'})
 

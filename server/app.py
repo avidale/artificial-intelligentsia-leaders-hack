@@ -55,7 +55,10 @@ def recommend_books(user: User):
     res = [{
         "title": cand["title"],
         "author": cand["author"],
-        "doc_id": cand["doc_id"]
+        "doc_id": cand["doc_id"],
+        'type': 'book',
+        'name': cand['title'],
+        'description': cand['author'],
     } for i, cand in recommendations.iterrows()]
     return res
 
@@ -70,7 +73,7 @@ def handle_search():
     res = [{
         "title": cand["title"],
         "author": cand["author"],
-        "doc_id": cand["doc_id"]
+        "doc_id": cand["doc_id"],
     } for i, cand in search_res.iterrows()]
 
     return jsonify(res)

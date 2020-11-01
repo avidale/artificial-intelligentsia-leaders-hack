@@ -36,7 +36,8 @@ class CrossRecommender:
             {
                 'name': e.name,
                 'description': e.full_description,
-                'imgUrl': e.pic_url
+                'imgUrl': e.pic_url,
+                'type': 'event',
             }
             for i, e in events.iterrows()
         ]

@@ -1,3 +1,4 @@
+from lib.scraping import google_img
 
 
 class User:
@@ -9,6 +10,10 @@ class User:
         self.books = books or []
 
     def add_book(self, book):
+        # if book.get('title'):
+        #     gi = google_img(book['title'])
+        #     if gi:
+        #         book['img_url'] = gi
         self.books.append(book)
 
     @property

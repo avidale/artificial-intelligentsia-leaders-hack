@@ -85,7 +85,7 @@ def get_profile():
 
 
 @app.route('/setUserData', methods=["POST"])
-def get_profile():
+def set_user_data():
     # expects json like {'uid': str, 'book': object}
     if "uid" not in request.json:
         abort(401)

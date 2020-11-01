@@ -1,0 +1,3 @@
+[submodule "inno"]
+	path = inno
+	url = https://github.com/NevMem/inno.git

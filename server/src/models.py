@@ -19,7 +19,6 @@ class RecModel:
         history = list(map(self.doc_mapping.get, history))
         user_vector = np.mean(self.model.item_factors[history], axis=0)
 
-        print(user_vector.shape)
         knn_result = self.knn_model.kneighbors(user_vector.reshape(1, -1), n_neighbors=n_neighbors)[1].flatten().tolist()
 
         return list(map(self.back_doc_mapping.get, knn_result))

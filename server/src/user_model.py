@@ -1,9 +1,10 @@
 
 
 class User:
-    def __init__(self, uid, age=None, address=None, books=None):
+    def __init__(self, uid, age=None, location=None, address=None, books=None):
         self.uid = uid
         self.age = age
+        self.location = location
         self.address = address
         self.books = books or []
 
@@ -19,6 +20,7 @@ class User:
             'uid': self.uid,
             'age': self.age,
             'address': self.address,
+            'location': self.location,
             'books': self.books,
         }
 

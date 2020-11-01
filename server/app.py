@@ -4,8 +4,12 @@ from src.searcher import searcher
 from src.user_model import UserStorage
 from config import DEBUG, SERVER_PORT
 
+import logging
+
 app = Flask(__name__)
 user_storage = UserStorage()
+
+logger = logging.getLogger(__name__)
 
 
 def add_cors_headers(response):
@@ -76,7 +80,26 @@ def get_profile():
     if "uid" not in request.json:
         abort(401)
     user = user_storage.get_user(uid=request.json['uid'])
+    logger.debug('user : {}'.format(user.to_dict()))
     return jsonify(user.to_dict())
+
+
+@app.route('/setUserData', methods=["POST"])
+def get_profile():
+    # expects json like {'uid': str, 'book': object}
+    if "uid" not in request.json:
+        abort(401)
+    user = user_storage.get_user(uid=request.json['uid'])
+    user_data = request.json
+    logger.debug('user data: {}'.format(user_data))
+    if user_data.get('address'):
+        user.address = user_data['address']
+    if user_data.get('location'):
+        user.location = user_data['location']
+    if user_data.get('age'):
+        user.age = user_data['age']
+    user_storage.save_user(user)
+    return jsonify({'result': 'OK'})
 
 
 if __name__ == '__main__':

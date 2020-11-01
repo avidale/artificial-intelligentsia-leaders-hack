@@ -61,7 +61,7 @@ class CrossRecommender:
             events['score'] = 1 - found.d
         if user.location and user.location.get('lat'):
             addr = geocoder.Address(lat=user.location['lat'], lon=user.location['lng'])
-            events['distance'].address.apply(lambda a: geocoder.geo_distance(addr, a))
+            events['distance'] = events.address.apply(lambda a: geocoder.geo_distance(addr, a))
             events['total_score'] = events.score * np.exp(- events['distance'] / 20)
             events.sort_values('total_score', inplace=True, ascending=False)
         events = events.head(10)

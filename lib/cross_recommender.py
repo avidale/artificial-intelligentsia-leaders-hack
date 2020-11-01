@@ -59,7 +59,7 @@ class CrossRecommender:
             events = self.events_searcher.df.iloc[found.idx]
         return [
             {
-                'name': e.name,
+                'name': e['name'],
                 'description': e.full_description,
                 'imgUrl': e.pic_url,
                 'type': 'event',

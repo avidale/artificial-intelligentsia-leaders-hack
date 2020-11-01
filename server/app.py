@@ -1,13 +1,18 @@
+
 from flask import Flask, request, jsonify, abort
 from src.models import rec_model
 from src.searcher import searcher
-from src.user_model import UserStorage
-from config import DEBUG, SERVER_PORT
+from config import DEBUG, SERVER_PORT, TEXT_EMBEDDER_MODEL
+import sys
+sys.path.append('..')
+from lib.user_model import User, UserStorage
+from lib.cross_recommender import CrossRecommender
 
 import logging
 
 app = Flask(__name__)
 user_storage = UserStorage()
+cross_recommender = CrossRecommender(TEXT_EMBEDDER_MODEL)
 
 logger = logging.getLogger(__name__)
 
@@ -28,23 +33,28 @@ def salam():
 
 
 @app.route('/recommend', methods=["POST"])
-def hello_world():
+def recommend():
     # doc_ids = request.json["doc_ids"]
     user = user_storage.get_user(uid=request.json['uid'])
+    logger.debug('recommending for user {}'.format(request.json['uid']))
+    books = recommend_books(user)
+    events = cross_recommender.recommend_events(user)
+    return jsonify(books + events)
+
+
+def recommend_books(user: User):
     doc_ids = user.book_ids
     if not doc_ids:
         recommendations = rec_model.random_books(10)
     else:
         recommendations = rec_model.recommend_by_history(doc_ids, 10)
         recommendations = rec_model.get_book_info(recommendations)
-
     res = [{
         "title": cand["title"],
         "author": cand["author"],
         "doc_id": cand["doc_id"]
     } for i, cand in recommendations.iterrows()]
-
-    return jsonify(res)
+    return res
 
 
 @app.route('/search', methods=["POST"])
@@ -68,6 +78,7 @@ def add_book():
     # expects json like {'uid': str, 'book': object}
     if "uid" not in request.json or 'book' not in request.json:
         abort(401)
+    logger.debug('adding a book {} for user {}'.format(request.json['book'], request.json['uid']))
     user = user_storage.get_user(uid=request.json['uid'])
     user.add_book(request.json['book'])
     user_storage.save_user(user)

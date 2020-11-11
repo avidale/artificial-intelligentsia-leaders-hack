@@ -99,7 +99,7 @@ class CrossRecommender:
         return [
             {
                 'name': e['title'],
-                'description': e['text'],
+                'description': e['description'],
                 'type': 'club',
             }
             for i, e in clubs.iterrows()

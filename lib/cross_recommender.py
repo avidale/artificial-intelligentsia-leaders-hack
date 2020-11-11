@@ -22,11 +22,18 @@ def make_events_searcher(embedder):
     return s150
 
 
+def load_clubs_searcher(embedder, path):
+    result = EventSearcher.from_pickle(path, embedder)
+    return result
+
+
 class CrossRecommender:
-    def __init__(self, embedder_data, ann_data):
+    def __init__(self, embedder_data, ann_data, clubs_model):
         self.embedder = Embedder(embedder_data)
         self.events_searcher = make_events_searcher(embedder=self.embedder)
         self.ann_df = pd.read_parquet(ann_data)
+
+        self.clubs_searcher = load_clubs_searcher(self.embedder, clubs_model)
 
     def find_annotation(self, title, author=None):
         title_norm = normalize_text(title)
@@ -73,4 +80,24 @@ class CrossRecommender:
                 'type': 'event',
             }
             for i, e in events.iterrows()
+        ]
+
+    def recommend_clubs(self, user: User):
+        if len(user.book_vectors) == 0:
+            clubs = self.clubs_searcher.df.copy()
+            clubs['score'] = 1
+        else:
+            vec = np.mean(user.book_vectors, axis=0)
+            found = self.clubs_searcher.match_vector(vec, n=30)
+            clubs = self.clubs_searcher.df.iloc[found.idx].copy()
+            clubs['score'] = 1 - found.d
+        # todo: use address
+        clubs = clubs.head(10)
+        return [
+            {
+                'name': e['title'],
+                'description': e['text'],
+                'type': 'club',
+            }
+            for i, e in clubs.iterrows()
         ]

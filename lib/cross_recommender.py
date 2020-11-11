@@ -8,7 +8,7 @@ from lib.user_model import User
 from lib.text_search import normalize_text
 
 
-EVENTS_URL = 'https://www.mos.ru/afisha/tickets/_next/data/fI_e03_EFY6-2Yur4wNIE/events.json?page=1&page_size=500'
+EVENTS_URL = 'https://www.mos.ru/afisha/tickets/_next/data/gPytlqtX5MVqlilU3PCRA/events.json?page=1&page_size=500'
 
 
 def make_events_searcher(embedder):

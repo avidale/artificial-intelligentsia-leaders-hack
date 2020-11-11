@@ -107,9 +107,9 @@ class EventSearcher:
             total = pd.concat([first, second], ignore_index=True).sort_values('d')
         else:
             total = first
-        total['title'] = self.titles[total.idx].values
+        total['title'] = self.titles.iloc[total.idx].values
         if self.desc_column:
-            total['desc'] = self.desc[total.idx].values
+            total['desc'] = self.desc.iloc[total.idx].values
         total.drop_duplicates(subset=['idx'], keep='first', inplace=True, ignore_index=True)
         return total
 

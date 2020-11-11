@@ -92,7 +92,7 @@ class CrossRecommender:
         else:
             vec = np.mean(user.book_vectors, axis=0)
             found = self.clubs_searcher.match_vector(vec, n=30)
-            clubs = self.clubs_searcher.df.loc[found.idx].copy()
+            clubs = self.clubs_searcher.df.iloc[found.idx].copy()
             clubs['score'] = 1 - found.d
         if user.location and user.location.get('lat'):
             addr = geocoder.Address(lat=user.location['lat'], lon=user.location['lng'])

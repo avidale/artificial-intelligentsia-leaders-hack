@@ -72,8 +72,8 @@ class CrossRecommender:
         if user.location and user.location.get('lat'):
             addr = geocoder.Address(lat=user.location['lat'], lon=user.location['lng'])
             events['distance'] = events.address.apply(lambda a: geocoder.geo_distance(addr, a))
-            events['total_score'] = events.score * np.exp(- events['distance'] / 20)
-            events.sort_values('total_score', inplace=True, ascending=False)
+            events['score'] = events.score * np.exp(- events['distance'] / 20)
+        events.sort_values('score', inplace=True, ascending=False)
         events = events.head(10)
         return [
             {
@@ -97,7 +97,8 @@ class CrossRecommender:
         if user.location and user.location.get('lat'):
             addr = geocoder.Address(lat=user.location['lat'], lon=user.location['lng'])
             clubs['distance'] = clubs.full_address.apply(lambda a: geocoder.geo_distance(addr, a))
-            clubs['total_score'] = clubs.score * np.exp(- clubs['distance'] / 20)
+            clubs['score'] = clubs.score * np.exp(- clubs['distance'] / 20)
+        clubs.sort_values('score', inplace=True, ascending=False)
         clubs = clubs.head(10)
         return [
             {

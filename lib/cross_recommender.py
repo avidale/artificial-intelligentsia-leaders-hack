@@ -94,7 +94,10 @@ class CrossRecommender:
             found = self.clubs_searcher.match_vector(vec, n=30)
             clubs = self.clubs_searcher.df.iloc[found.idx].copy()
             clubs['score'] = 1 - found.d
-        # todo: use address
+        if user.location and user.location.get('lat'):
+            addr = geocoder.Address(lat=user.location['lat'], lon=user.location['lng'])
+            clubs['distance'] = clubs.full_address.apply(lambda a: geocoder.geo_distance(addr, a))
+            clubs['total_score'] = clubs.score * np.exp(- clubs['distance'] / 20)
         clubs = clubs.head(10)
         return [
             {

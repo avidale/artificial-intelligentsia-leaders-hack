@@ -12,8 +12,11 @@ EVENTS_URL = 'https://www.mos.ru/afisha/tickets/_next/data/gPytlqtX5MVqlilU3PCRA
 
 
 def make_events_searcher(embedder):
-    data = requests.get(EVENTS_URL).json()
-    items = data['pageProps']['items']
+    try:
+        data = requests.get(EVENTS_URL).json()
+        items = data['pageProps']['items']
+    except Exception as e:
+        items = []
     for item in items:
         item['address'] = geocoder.Address(lat=item['latitude'], lon=item['longitude'], text=item['spot_name'])
     items_df = pd.DataFrame(items)

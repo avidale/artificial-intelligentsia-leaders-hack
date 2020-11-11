@@ -3,7 +3,7 @@ from itertools import zip_longest
 from flask import Flask, request, jsonify, abort
 from src.models import rec_model
 from src.searcher import searcher
-from config import DEBUG, SERVER_PORT, TEXT_EMBEDDER_MODEL, ANNOTATIONS_DATA, USER_STATE
+from config import DEBUG, SERVER_PORT, TEXT_EMBEDDER_MODEL, ANNOTATIONS_DATA, USER_STATE, CLUBS_MODEL
 import sys
 sys.path.append('..')
 from lib.user_model import User, UserStorage
@@ -18,6 +18,7 @@ user_storage = UserStorage(USER_STATE)
 cross_recommender = CrossRecommender(
     embedder_data=TEXT_EMBEDDER_MODEL,
     ann_data=ANNOTATIONS_DATA,
+    clubs_model=CLUBS_MODEL,
 )
 
 logger = logging.getLogger(__name__)
@@ -53,7 +54,8 @@ def recommend():
     logger.debug('recommending for user {}'.format(request.json['uid']))
     books = recommend_books(user)
     events = cross_recommender.recommend_events(user)
-    return jsonify(mix_lists(books, events))
+    clubs = cross_recommender.recommend_clubs(user)
+    return jsonify(mix_lists(books, events, clubs))
 
 
 def recommend_books(user: User):

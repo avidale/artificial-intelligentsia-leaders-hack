@@ -8,12 +8,15 @@ from lib.user_model import User
 from lib.text_search import normalize_text
 
 
-EVENTS_URL = 'https://www.mos.ru/afisha/tickets/_next/data/fI_e03_EFY6-2Yur4wNIE/events.json?page=1&page_size=500'
+EVENTS_URL = 'https://www.mos.ru/afisha/tickets/_next/data/gPytlqtX5MVqlilU3PCRA/events.json?page=1&page_size=500'
 
 
 def make_events_searcher(embedder):
-    data = requests.get(EVENTS_URL).json()
-    items = data['pageProps']['items']
+    try:
+        data = requests.get(EVENTS_URL).json()
+        items = data['pageProps']['items']
+    except Exception as e:
+        items = []
     for item in items:
         item['address'] = geocoder.Address(lat=item['latitude'], lon=item['longitude'], text=item['spot_name'])
     items_df = pd.DataFrame(items)
@@ -22,11 +25,18 @@ def make_events_searcher(embedder):
     return s150
 
 
+def load_clubs_searcher(embedder, path):
+    result = EventSearcher.from_pickle(path, embedder)
+    return result
+
+
 class CrossRecommender:
-    def __init__(self, embedder_data, ann_data):
+    def __init__(self, embedder_data, ann_data, clubs_model):
         self.embedder = Embedder(embedder_data)
         self.events_searcher = make_events_searcher(embedder=self.embedder)
         self.ann_df = pd.read_parquet(ann_data)
+
+        self.clubs_searcher = load_clubs_searcher(self.embedder, clubs_model)
 
     def find_annotation(self, title, author=None):
         title_norm = normalize_text(title)
@@ -73,4 +83,27 @@ class CrossRecommender:
                 'type': 'event',
             }
             for i, e in events.iterrows()
+        ]
+
+    def recommend_clubs(self, user: User):
+        if len(user.book_vectors) == 0:
+            clubs = self.clubs_searcher.df.copy()
+            clubs['score'] = 1
+        else:
+            vec = np.mean(user.book_vectors, axis=0)
+            found = self.clubs_searcher.match_vector(vec, n=30)
+            clubs = self.clubs_searcher.df.iloc[found.idx].copy()
+            clubs['score'] = 1 - found.d
+        if user.location and user.location.get('lat'):
+            addr = geocoder.Address(lat=user.location['lat'], lon=user.location['lng'])
+            clubs['distance'] = clubs.full_address.apply(lambda a: geocoder.geo_distance(addr, a))
+            clubs['total_score'] = clubs.score * np.exp(- clubs['distance'] / 20)
+        clubs = clubs.head(10)
+        return [
+            {
+                'name': e['title'],
+                'description': e['description'],
+                'type': 'club',
+            }
+            for i, e in clubs.iterrows()
         ]
